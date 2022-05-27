@@ -1,1 +1,1 @@
-# Fast_Multipole_Methon
+# Fast_Multipole_Method
