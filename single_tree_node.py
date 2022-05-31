@@ -1,4 +1,5 @@
 import numpy as np
+from tree_functions import loop_children
 
 
 class SingleTreeNode():
@@ -43,6 +44,9 @@ class SingleTreeNode():
                 if self.contains(d.x, d.y):
                     self.points.append(d)
 
+    def get_points(self):
+        return self.points
+
     def has_children(self):
         if self.children is not None:
             return self.children
@@ -68,6 +72,13 @@ class SingleTreeNode():
         for i, c in enumerate(self.children):
             c.cardinal_index = i
 
+    def threshold_split(self, threshold):
+        if len(self) > threshold:
+            self.split()
+        if self.has_children():
+            for child in self.children:
+                child.threshold_split(threshold)
+
     def contains(self, x, y):
         return ((x >= self.verts[0][0] and x < self.verts[0][1]) and
                 (y >= self.verts[1][0] and y < self.verts[1][1]))
@@ -77,32 +88,61 @@ class SingleTreeNode():
             return True
         else: 
             return False
-    
-    def threshold_split(self, threshold):
-        if len(self) > threshold:
-            self.split()
-        if self.has_children():
-            for child in self.children:
-                child.threshold_split(threshold)
 
     def set_cardinal_neighbors(self):
         for i, child in enumerate(self.children):
-
             n_sibling = (abs(1 + (i^1) - i), abs(1 + (i^2) - i))
+
             child.cardinal_neighbors[n_sibling[0]] = self.children[i^1]
             child.cardinal_neighbors[n_sibling[1]] = self.children[i^2]
 
             n_parent = tuple(set((0,1,2,3)) - set((n_sibling)))
             n_cardinal = lambda j, k: j^((k + 1)%2 + 1)
+
             child.cardinal_neighbors[n_parent[0]] = (self.cardinal_neighbors[n_parent[0]].get_child(n_cardinal(i, n_parent[1]))
-                                        if self.cardinal_neighbors[pn[0]] is not None
+                                        if self.cardinal_neighbors[n_parent[0]] is not None
                                         else None)
-            child.cardinal_neighbors[pn[1]] = (self.cardinal_neighbors[pn[1]]._get_child(nc(i, pn[0]))
-                                        if self.cardinal_neighbors[pn[1]] is not None
+            child.cardinal_neighbors[n_parent[1]] = (self.cardinal_neighbors[n_parent[1]].get_child(n_cardinal(i, n_parent[0]))
+                                        if self.cardinal_neighbors[n_parent[1]] is not None
                                         else None)
-            # Recursively set cneighbors
-            if child._has_children():
-                child.set_cneighbors()
+            if child.has_children():
+                child.set_cardinal_neighbors()
+
+    def traverse(self):
+        if self.has_children():
+            for child in loop_children(self):
+                yield child
 
     avoid_index = (1, 2, 0, 3)
     corner_index = (3, 2, 0, 1)
+
+    @property
+    def get_nearest_neighbors(self):
+        if self.nearest_neighbors is not None:
+            return self.nearest_neighbors
+
+        nn = [cn.cardinal_neighbors[(i+1)%4]
+              for i, cn in enumerate(self.cardinal_neighbors)
+              if cn is not None 
+              and cn.level == self.level]
+
+        nn += [cn.cardinal_neighbors[(i+1)%4].get_child(self.corner_index[i])
+               for i, cn in enumerate(self.cardinal_neighbors)
+               if cn is not None 
+               and cn.cardinal_neighbors[(i+1)%4] is not None 
+               and (cn.level < self.level and i != self.avoid_index[self.cardinal_index])]
+
+        nn = [n for n in self.cardinal_neighbors + nn if n is not None]
+        self.nearest_neighbors = nn
+        
+        return nn
+
+    def interaction_set(self):
+        nn, pn = self.get_nearest_neighbors, self.parent.get_nearest_neighbors
+        int_set = []
+        for n in pn:
+            if n.has_children():
+                int_set += [c for c in n if c not in nn]
+            elif n not in nn:
+                int_set.append(n)
+        return int_set
