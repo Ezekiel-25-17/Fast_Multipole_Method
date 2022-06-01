@@ -44,12 +44,14 @@ class QuadTree():
         for node in self.root.traverse():
             yield node
 
+
 class Point2D():
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
         self.pos = (x, y)
+
 
 class Particle(Point2D):
 
