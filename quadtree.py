@@ -43,3 +43,17 @@ class QuadTree():
     def traverse_nodes(self):
         for node in self.root.traverse():
             yield node
+
+class Point2D():
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.pos = (x, y)
+
+class Particle(Point2D):
+
+    def __init__(self, charge, x, y):
+        super(Particle, self).__init__(x, y)
+        self.q = charge
+        self.phi = 0
