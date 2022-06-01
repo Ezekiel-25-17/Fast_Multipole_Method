@@ -1,5 +1,4 @@
 import numpy as np
-from tree_functions import loop_children
 
 
 class SingleTreeNode():
@@ -146,3 +145,11 @@ class SingleTreeNode():
             elif n not in nn:
                 int_set.append(n)
         return int_set
+
+
+def loop_children(parent):
+    for child in parent.children:
+        if child.children:
+            for subchild in loop_children(child):
+                yield subchild
+        yield child

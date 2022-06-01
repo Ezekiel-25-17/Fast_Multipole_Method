@@ -46,14 +46,6 @@ def distance(point_1, point_2):
     return distance
 
 
-def loop_children(parent):
-    for child in parent.children:
-        if child.children:
-            for subchild in loop_children(child):
-                yield subchild
-        yield child
-
-
 def build_tree(points, tree_threshold=None, eps = (7/3)-(4/3)-1, bbox=None, boundary='wall'):
     if bbox is None:
         coords = np.array([(p.x, p.y) for p in points])
@@ -112,23 +104,21 @@ def convert_outer_to_inner(coeffs, z0):
 
 
 def inner_exp(tnode):
-    z0 = complex(*tnode.parent.center) - complex(*tnode.center) # check sign
+    z0 = complex(*tnode.parent.center) - complex(*tnode.center)
     tnode.inner = shift_taylor_exp(tnode.parent.inner, z0)
     for tin in tnode.interaction_set():
         z0 = complex(*tin.center) - complex(*tnode.center)
         tnode.inner += convert_outer_to_inner(tin.outer, z0)
 
     if tnode.is_leaf():
-        # Compute potential due to all far enough particles
         z0, coeffs = complex(*tnode.center), tnode.inner
+
         for p in tnode.get_points():
             z = complex(*p.pos)
             p.phi -= np.real(np.polyval(coeffs[::-1], z-z0))
-        # Compute potential directly from particles in interaction set
+
         for nn in tnode.nearest_neighbors:
             potential_dds(tnode.get_points(), nn.get_points())
-
-        # Compute all-to-all potential from all particles in leaf cell
         _ = potential_ds(tnode.get_points())
     else:
         for child in tnode:
