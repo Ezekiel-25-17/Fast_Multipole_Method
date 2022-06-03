@@ -3,7 +3,7 @@ import numpy as np
 
 class SingleTreeNode():
 
-    def __init__(self, x0, y0, width, height, children=None, parents=None, points=None, level=0):
+    def __init__(self,  width, height, x0, y0, children=None, parents=None, points=None, level=0):
 
         self.x0 = x0
         self.y0 = y0
@@ -47,8 +47,7 @@ class SingleTreeNode():
         return self.points
 
     def has_children(self):
-        if self.children is not None:
-            return self.children
+        return (self.children is not None)
 
     def get_child(self, i):
         if self.children is None:
@@ -65,9 +64,8 @@ class SingleTreeNode():
         y0 = self.verts[1][0]
 
         # [NW, NE, SW, SE] =  [0, 1, 2, 3]
-        self.children = [SingleTreeNode(w, h, xi, yi, points=self.points, level=self.level+1, parent=self)
+        self.children = [SingleTreeNode(w, h, xi, yi, parents=self, points=self.points, level=self.level+1) 
                         for yi in (y0 + h, y0) for xi in (x0, x0 + w)]
-
         for i, c in enumerate(self.children):
             c.cardinal_index = i
 
@@ -89,6 +87,7 @@ class SingleTreeNode():
             return False
 
     def set_cardinal_neighbors(self):
+
         for i, child in enumerate(self.children):
             n_sibling = (abs(1 + (i^1) - i), abs(1 + (i^2) - i))
 
@@ -137,7 +136,7 @@ class SingleTreeNode():
         return nn
 
     def interaction_set(self):
-        nn, pn = self.get_nearest_neighbors, self.parent.get_nearest_neighbors
+        nn, pn = self.get_nearest_neighbors, self.parents.get_nearest_neighbors
         int_set = []
         for n in pn:
             if n.has_children():
