@@ -1,5 +1,6 @@
-import numpy as np
 from single_tree_node import SingleTreeNode
+import numpy as np
+
 
 class QuadTree():
 
@@ -7,13 +8,13 @@ class QuadTree():
         self.threshold = threshold
         self.root = SingleTreeNode(*bbox, 0, 0)
         if boundary == 'periodic':
-            self.root.cardinal_neighbors = [self.root, self.root, self.root, self.root]
+            self.root.cardinal_neighbors = 4*[self.root,]
         elif boundary == 'wall':
-            self.root.cardinal_neighbors = [None, None, None, None]
+            self.root.cardinal_neighbors = 4*[None,]
         else:
             raise AttributeError(f'Boundary of type {boundary} not recognized')
         self.build_tree(points)
-        self.depth = None
+        self._depth = None
 
     def __len__(self):
         l = len(self.root)
@@ -32,9 +33,9 @@ class QuadTree():
 
     @property
     def depth(self):
-        if self.depth is None:
+        if self._depth is None:
             self.depth = max([node.level for node in self.root.traverse()])
-        return self.depth
+        return self._depth
 
     @property
     def nodes(self):
@@ -55,7 +56,19 @@ class Point2D():
 
 class Particle(Point2D):
 
-    def __init__(self, charge, x, y):
+    def __init__(self, x, y, charge):
         super(Particle, self).__init__(x, y)
         self.q = charge
         self.phi = 0
+
+
+eps = (7/3 - 4/3) -1
+
+def build_tree(points, tree_threshold=None, bbox=None, boundary='wall'):
+    if bbox is None:
+        coords = np.array([(p.x, p.y) for p in points])
+        bbox = (max(coords[:, 0]) + eps, max(coords[:, 1]) + eps)
+    if tree_threshold is None:
+        tree_threshold = 5
+
+    return QuadTree(points, tree_threshold, bbox=bbox, boundary=boundary)
