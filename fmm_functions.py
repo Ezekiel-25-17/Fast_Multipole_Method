@@ -1,5 +1,5 @@
 import numpy as np
-from quadtree import QuadTree
+from quadtree import QuadTree, build_tree
 from scipy.special import binom
 
 # Functions Explained:
@@ -44,16 +44,6 @@ def potential_dds(particles, sources):
 def distance(point_1, point_2):
     distance = np.sqrt((point_1[0] - point_2[0])**2 + (point_1[1] - point_2[1])**2)
     return distance
-
-
-def build_tree(points, tree_threshold=None, eps = (7/3)-(4/3)-1, bbox=None, boundary='wall'):
-    if bbox is None:
-        coords = np.array([(p.x, p.y) for p in points])
-        bbox = (max(coords[:, 0]) + eps, max(coords[:, 1]) + eps)
-    if tree_threshold is None:
-        tree_threshold = 5
-
-    return QuadTree(points, tree_threshold, bbox=bbox, boundary=boundary)
 
 
 def multipole(particles, center=(0,0), nterms=5):
@@ -104,8 +94,8 @@ def convert_outer_to_inner(coeffs, z0):
 
 
 def inner_exp(tnode):
-    z0 = complex(*tnode.parent.center) - complex(*tnode.center)
-    tnode.inner = shift_taylor_exp(tnode.parent.inner, z0)
+    z0 = complex(*tnode.parents.center) - complex(*tnode.center)
+    tnode.inner = shift_taylor_exp(tnode.parents.inner, z0)
     for tin in tnode.interaction_set():
         z0 = complex(*tin.center) - complex(*tnode.center)
         tnode.inner += convert_outer_to_inner(tin.outer, z0)
