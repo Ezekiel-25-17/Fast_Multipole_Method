@@ -85,8 +85,7 @@ def outer_multipole_exp(tnode, nterms):
 
 def convert_outer_to_inner(coeffs, z0):
     inner = np.empty_like(coeffs)
-    inner[0] = (sum([(coeffs[k]/z0**k)*(-1)**k for k in range(1, len(coeffs))]) +
-          coeffs[0]*np.log(-z0))
+    inner[0] = (sum([(coeffs[k]/z0**k)*(-1)**k for k in range(1, len(coeffs))]) + coeffs[0]*np.log(-z0))
     inner[1:] = [(1/z0**l)*sum([(coeffs[k]/z0**k)*binom(l+k-1, k-1)*(-1)**k
                  for k in range(1, len(coeffs))]) - coeffs[0]/((z0**l)*l)
                  for l in range(1, len(coeffs))]
