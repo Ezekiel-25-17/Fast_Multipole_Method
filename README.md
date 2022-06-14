@@ -1,5 +1,5 @@
 # Python Implementation for Fast Multipole Method
-## 20602 Computer Science (Algorithms) \br Academic Year 2021/2022
+## 20602 Computer Science (Algorithms) <br/> Academic Year 2021/2022
 ## Leonardi Federico
 ### Contents:
 - fast_multipole_method: Notebook plotting and checking the main properties of FMM
